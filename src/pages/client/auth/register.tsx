@@ -1,22 +1,34 @@
 import type { FormProps } from "antd";
-import { Button, Checkbox, Form, Input, Spin } from "antd";
+import { App, Button, Checkbox, Form, Input, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { registerAPI } from "@/services/api";
 type FieldType = {
-    username?: string;
-    password?: string;
-    email?: string;
-    phonenumber?: string;
+    fullName: string;
+    password: string;
+    email: string;
+    phone: string;
     remember?: string;
 };
 
 const RegisterPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
-
-    const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
+    const { message } = App.useApp();
+    const navigate = useNavigate();
+    const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
         console.log("Success:", values);
         setLoading(true);
+        const { fullName, password, email, phone } = values;
+        const res = await registerAPI(fullName, password, email, phone);
+        if (res.data) {
+            console.log("abc");
+            message.success("success");
+            navigate("/login");
+        } else {
+            message.error("This email has been existed");
+        }
+        setLoading(false);
     };
 
     const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = (
@@ -24,6 +36,7 @@ const RegisterPage = () => {
     ) => {
         console.log("Failed:", errorInfo);
     };
+
     return (
         <div
             style={{
@@ -65,7 +78,7 @@ const RegisterPage = () => {
                 >
                     <Form.Item<FieldType>
                         label="Tên đăng nhập"
-                        name="username"
+                        name="fullName"
                         rules={[
                             {
                                 required: true,
@@ -108,7 +121,7 @@ const RegisterPage = () => {
 
                     <Form.Item<FieldType>
                         label="Số điện thoại"
-                        name="phonenumber"
+                        name="phone"
                         rules={[
                             {
                                 required: true,
