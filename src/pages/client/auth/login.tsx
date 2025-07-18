@@ -1,7 +1,10 @@
 import type { FormProps } from "antd";
-import { App, Button, Checkbox, Form, Input } from "antd";
+import { App, Button, Checkbox, Form, Input, Spin } from "antd";
 import { Link, useNavigate } from "react-router-dom";
+import { LoadingOutlined } from "@ant-design/icons";
+import { useState } from "react";
 import { loginAPI } from "@/services/api";
+import { useCurrentApp } from "@/components/context/app.context";
 type FieldType = {
     username: string;
     password: string;
@@ -9,19 +12,26 @@ type FieldType = {
 };
 
 const LoginPage = () => {
+    const [loading, setLoading] = useState<boolean>(false);
     const { message } = App.useApp();
+    const { setIsAuthenticated, setUser } = useCurrentApp();
+
     const navigate = useNavigate();
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+        setLoading(true);
         const { username, password } = values;
         const res = await loginAPI(username, password);
         console.log(res.data);
         if (res.data) {
-            localStorage.setItem("access token", res.data.access_token);
+            setIsAuthenticated(true);
+            setUser(res.data.user);
+            localStorage.setItem("access_token", res.data.access_token);
             message.success("success");
             navigate("/");
         } else {
             message.error("Error");
         }
+        setLoading(false);
     };
 
     return (
@@ -98,9 +108,15 @@ const LoginPage = () => {
                     <Form.Item
                         style={{ display: "flex", justifyContent: "center" }}
                     >
-                        <Button type="primary" htmlType="submit">
-                            Đăng nhập
-                        </Button>
+                        <Spin
+                            indicator={<LoadingOutlined spin />}
+                            size="small"
+                            spinning={loading}
+                        >
+                            <Button type="primary" htmlType="submit">
+                                Đăng nhập
+                            </Button>
+                        </Spin>
                     </Form.Item>
                     <div style={{ textAlign: "center" }}>
                         <span>Bạn chưa có tài khoản? </span>
