@@ -1,35 +1,68 @@
-import { createContext, useState, useContext } from "react";
+import { fetchAccountAPI } from "@/services/api";
+import { createContext, useContext, useEffect, useState } from "react";
+import RingLoader from "react-spinners/RingLoader";
 
 interface IAppContext {
     isAuthenticated: boolean;
     setIsAuthenticated: (v: boolean) => void;
+    setUser: (v: IUser | null) => void;
     user: IUser | null;
-    setUser: (v: IUser) => void;
     isAppLoading: boolean;
     setIsAppLoading: (v: boolean) => void;
 }
-interface IProps {
-    children: React.ReactNode;
-}
+
 const CurrentAppContext = createContext<IAppContext | null>(null);
 
-export const AppProvider = ({ children }: IProps) => {
+type TProps = {
+    children: React.ReactNode;
+};
+
+export const AppProvider = (props: TProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [user, setUser] = useState<IUser | null>(null);
     const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const fetchAccount = async () => {
+            const res = await fetchAccountAPI();
+            if (res.data) {
+                setUser(res.data.user);
+                setIsAuthenticated(true);
+            }
+            setIsAppLoading(false);
+        };
+
+        fetchAccount();
+    }, []);
+
     return (
-        <CurrentAppContext.Provider
-            value={{
-                isAuthenticated,
-                setIsAuthenticated,
-                user,
-                setUser,
-                isAppLoading,
-                setIsAppLoading,
-            }}
-        >
-            {children}
-        </CurrentAppContext.Provider>
+        <>
+            {isAppLoading === false ? (
+                <CurrentAppContext.Provider
+                    value={{
+                        isAuthenticated,
+                        user,
+                        setIsAuthenticated,
+                        setUser,
+                        isAppLoading,
+                        setIsAppLoading,
+                    }}
+                >
+                    {props.children}
+                </CurrentAppContext.Provider>
+            ) : (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                    }}
+                >
+                    <RingLoader size={100} color="#3ad3a6" />
+                </div>
+            )}
+        </>
     );
 };
 
@@ -38,7 +71,7 @@ export const useCurrentApp = () => {
 
     if (!currentAppContext) {
         throw new Error(
-            "useCurrentUser has to be used within <CurrentAppContext.Provider>"
+            "useCurrentApp has to be used within <CurrentAppContext.Provider>"
         );
     }
 
