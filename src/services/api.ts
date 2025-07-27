@@ -39,3 +39,49 @@ export const logoutAPI = () => {
     const urlBackend = "/api/v1/auth/logout";
     return axios.post<IBackendRes<IRegister>>(urlBackend);
 };
+
+export const getUsersAPI = (query: string) => {
+    const urlBackend = `/api/v1/user?${query}`;
+    return axios.get<IBackendRes<IModelPaginate<IUserTable>>>(urlBackend);
+};
+
+export const createUserAPI = (
+    fullName: string,
+    email: string,
+    phone: string,
+    password: string
+) => {
+    const urlBackend = "/api/v1/user";
+    return axios.post<IBackendRes<IRegister>>(urlBackend, {
+        fullName,
+        password,
+        phone,
+        email,
+    });
+};
+
+export const bulkListUserAPI = (
+    data: { fullName: string; email: string; phone: string; password: string }[]
+) => {
+    const urlBackend = "/api/v1/user/bulk-create";
+    return axios.post<IBackendRes<IResponseImport>>(urlBackend, data);
+};
+
+export const updateUserAPI = (_id: string, fullName: string, phone: string) => {
+    const urlBackend = "/api/v1/user";
+    return axios.put<IBackendRes<IRegister>>(urlBackend, {
+        _id,
+        fullName,
+        phone,
+    });
+};
+
+export const deleteUserAPI = (_id: string) => {
+    const urlBackend = `/api/v1/user/${_id}`;
+    return axios.delete<IBackendRes<IRegister>>(urlBackend);
+};
+
+export const getBooksAPI = (query: string) => {
+    const urlBackend = `/api/v1/book?${query}`;
+    return axios.get<IBackendRes<IModelPaginate<IUserTable>>>(urlBackend);
+};

@@ -1,229 +1,269 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { getUsersAPI, deleteUserAPI } from "@/services/api";
+import { dateRangeValidate } from "@/services/helpers";
+import {
+    PlusOutlined,
+    EditTwoTone,
+    DeleteTwoTone,
+    CloudDownloadOutlined,
+    ExportOutlined,
+} from "@ant-design/icons";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
-import { ProTable, TableDropdown } from "@ant-design/pro-components";
-import { Button, Space, Tag } from "antd";
-import { useRef } from "react";
-import { FAKE_DATA } from "./data";
+import { ProTable } from "@ant-design/pro-components";
+import { Button, Popconfirm, App } from "antd";
 
-const waitTimePromise = async (time: number = 100) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(true);
-        }, time);
-    });
-};
+import DetailsUser from "./details.user";
+import CreateUser from "./create.user";
+import ImportUser from "./import.user";
 
-const waitTime = async (time: number = 100) => {
-    await waitTimePromise(time);
-};
-
-type GithubIssueItem = {
-    url: string;
-    id: number;
-    number: number;
-    title: string;
-    labels: {
-        name: string;
-        color: string;
-    }[];
-    state: string;
-    comments: number;
-    created_at: string;
-    updated_at: string;
-    closed_at?: string;
-};
-
-const columns: ProColumns<GithubIssueItem>[] = [
-    {
-        dataIndex: "index",
-        valueType: "indexBorder",
-        width: 48,
-    },
-    {
-        title: "标题",
-        dataIndex: "title",
-        copyable: true,
-        ellipsis: true,
-        tooltip: "标题过长会自动收缩",
-        formItemProps: {
-            rules: [
-                {
-                    required: true,
-                    message: "此项为必填项",
-                },
-            ],
-        },
-    },
-    {
-        disable: true,
-        title: "状态",
-        dataIndex: "state",
-        filters: true,
-        onFilter: true,
-        ellipsis: true,
-        valueType: "select",
-        valueEnum: {
-            all: { text: "超长".repeat(50) },
-            open: {
-                text: "未解决",
-                status: "Error",
-            },
-            closed: {
-                text: "已解决",
-                status: "Success",
-                disabled: true,
-            },
-            processing: {
-                text: "解决中",
-                status: "Processing",
-            },
-        },
-    },
-    {
-        disable: true,
-        title: "标签",
-        dataIndex: "labels",
-        search: false,
-        renderFormItem: (_, { defaultRender }) => {
-            return defaultRender(_);
-        },
-        render: (_, record) => (
-            <Space>
-                {record.labels.map(({ name, color }) => (
-                    <Tag color={color} key={name}>
-                        {name}
-                    </Tag>
-                ))}
-            </Space>
-        ),
-    },
-    {
-        title: "创建时间",
-        key: "showTime",
-        dataIndex: "created_at",
-        valueType: "date",
-        sorter: true,
-        hideInSearch: true,
-    },
-    {
-        title: "创建时间",
-        dataIndex: "created_at",
-        valueType: "dateRange",
-        hideInTable: true,
-        search: {
-            transform: (value) => {
-                return {
-                    startTime: value[0],
-                    endTime: value[1],
-                };
-            },
-        },
-    },
-    {
-        title: "操作",
-        valueType: "option",
-        key: "option",
-        render: (text, record, _, action) => [
-            <a
-                key="editable"
-                onClick={() => {
-                    action?.startEditable?.(record.id);
-                }}
-            >
-                编辑
-            </a>,
-            <a
-                href={record.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                key="view"
-            >
-                查看
-            </a>,
-            <TableDropdown
-                key="actionGroup"
-                onSelect={() => action?.reload()}
-                menus={[
-                    { key: "copy", name: "复制" },
-                    { key: "delete", name: "删除" },
-                ]}
-            />,
-        ],
-    },
-];
+import { useRef, useState } from "react";
+import { CSVLink } from "react-csv";
+import UpdateUser from "./update.user";
+interface ISearch {
+    fullName: string;
+    email: string;
+    createdAt: string;
+    createdAtRange: string;
+}
 
 const TableUser = () => {
+    const { message } = App.useApp();
     const actionRef = useRef<ActionType>();
+    const [meta, setMeta] = useState({
+        current: 1,
+        pageSize: 5,
+        pages: 0,
+        total: 0,
+    });
+    const [openViewDetails, setOpenViewDetails] = useState<boolean>(false);
+    const [dataViewDetails, setDataViewDetails] = useState<IUserTable | null>(
+        null
+    );
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+    const [tableData, setTableData] = useState<IUserTable[]>([]);
+    const [dataUpdate, setDataUpdate] = useState<IUserTable | null>(null);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState<boolean>(false);
+    const [isDelete, setIsDelete] = useState<boolean>(false);
+    const [idDelete, setIdDelete] = useState<string | null>(null);
+
+    const refreshTable = () => {
+        actionRef.current?.reload();
+    };
+    const handleDelete = async () => {
+        setIsDelete(true);
+        const res = await deleteUserAPI(idDelete!);
+        if (res.data) {
+            message.success("Deleted successfully");
+            refreshTable();
+        }
+        setIdDelete(null);
+        setIsDelete(false);
+    };
+
+    const columns: ProColumns<IUserTable>[] = [
+        {
+            dataIndex: "index",
+            valueType: "indexBorder",
+            width: 48,
+        },
+        {
+            title: "id",
+            dataIndex: "_id",
+            hideInSearch: true,
+            render(dom, entity, index, action, schema) {
+                return (
+                    <a
+                        onClick={() => (
+                            setOpenViewDetails(true), setDataViewDetails(entity)
+                        )}
+                        href="#"
+                    >
+                        {entity._id}
+                    </a>
+                );
+            },
+        },
+        {
+            title: "Full Name",
+            dataIndex: "fullName",
+            sorter: true,
+        },
+        {
+            title: "Email",
+            dataIndex: "email",
+        },
+        {
+            title: "Created At",
+            dataIndex: "createdAt",
+            valueType: "date",
+            hideInSearch: true,
+            sorter: true,
+        },
+        {
+            title: "Created At",
+            dataIndex: "createdAtRange",
+            valueType: "dateRange",
+            hideInTable: true,
+        },
+        {
+            title: "Action",
+            valueType: "option",
+            hideInSearch: true,
+            key: "option",
+            render: (text, record, _, action) => [
+                <a
+                    key="editable"
+                    onClick={() => {
+                        setDataUpdate(record);
+                        setIsUpdateModalOpen(true);
+                    }}
+                >
+                    <EditTwoTone />
+                </a>,
+                <a
+                    key="delete"
+                    onClick={() => {
+                        setIdDelete(record._id);
+                    }}
+                    style={{ marginLeft: 15 }}
+                >
+                    <Popconfirm
+                        title="Delete user"
+                        description="Are you sure to delete this user?"
+                        onConfirm={handleDelete}
+                        okText="Yes"
+                        cancelText="No"
+                        okButtonProps={{ loading: isDelete }}
+                    >
+                        <DeleteTwoTone />
+                    </Popconfirm>
+                </a>,
+            ],
+        },
+    ];
     return (
         <>
-            <ProTable<GithubIssueItem>
-                columns={columns}
-                actionRef={actionRef}
-                cardBordered
-                request={async (params, sort, filter) => {
-                    console.log(sort, filter);
-                    await waitTime(2000);
-                    // const data = await (await fetch('https://proapi.azurewebsites.net/github/issues')).json()
-                    return {
-                        // data: data.data,
-                        data: FAKE_DATA as any,
-                        page: 1,
-                        success: true,
-                        // "total": 30
-                    };
-                }}
-                editable={{
-                    type: "multiple",
-                }}
-                columnsState={{
-                    persistenceKey: "pro-table-singe-demos",
-                    persistenceType: "localStorage",
-                    defaultValue: {
-                        option: { fixed: "right", disable: true },
-                    },
-                    onChange(value) {
-                        console.log("value: ", value);
-                    },
-                }}
-                rowKey="id"
-                search={{
-                    labelWidth: "auto",
-                }}
-                options={{
-                    setting: {
-                        listsHeight: 400,
-                    },
-                }}
-                form={{
-                    // 由于配置了 transform，提交的参数与定义的不同这里需要转化一下
-                    syncToUrl: (values, type) => {
-                        if (type === "get") {
-                            return {
-                                ...values,
-                                created_at: [values.startTime, values.endTime],
-                            };
+            <>
+                <ProTable<IUserTable, ISearch>
+                    columns={columns}
+                    actionRef={actionRef}
+                    cardBordered
+                    request={async (params, sort, filter) => {
+                        let query = "";
+                        if (params) {
+                            query += `current=${params.current}&pageSize=${params.pageSize}`;
+                            if (params.email) {
+                                query += `&email=/${params.email}/i`;
+                            }
+                            if (params.fullName) {
+                                query += `&fullName=/${params.fullName}/i`;
+                            }
+                            const createDateRange = dateRangeValidate(
+                                params.createdAtRange
+                            );
+                            if (createDateRange) {
+                                query += `&createdAt>=${createDateRange[0]}&createdAt<=${params.createdAt}`;
+                            }
                         }
-                        return values;
-                    },
-                }}
-                pagination={{
-                    pageSize: 5,
-                    onChange: (page) => console.log(page),
-                }}
-                dateFormatter="string"
-                headerTitle="Table user"
-                toolBarRender={() => [
-                    <Button
-                        key="button"
-                        icon={<PlusOutlined />}
-                        onClick={() => {
-                            actionRef.current?.reload();
-                        }}
-                        type="primary"
-                    >
-                        Add new
-                    </Button>,
-                ]}
+
+                        if (sort && sort.createdAt) {
+                            query += `&sort=${
+                                sort.createdAt === "ascend"
+                                    ? "createdAt"
+                                    : "-createdAt"
+                            }`;
+                        } else {
+                            query += `&sort=-createdAt`;
+                        }
+
+                        const res = await getUsersAPI(query);
+                        if (res.data) {
+                            setMeta(res.data.meta);
+                            setTableData(res.data?.result ?? []);
+                        }
+
+                        return {
+                            // data: data.data,
+                            data: res.data?.result,
+                            page: 1,
+                            success: true,
+                            total: res.data?.meta.total,
+                        };
+                    }}
+                    rowKey="_id"
+                    pagination={{
+                        current: meta.current,
+                        pageSize: meta.pageSize,
+                        showSizeChanger: true,
+                        total: meta.total,
+                        showTotal: (total, range) => {
+                            return (
+                                <div>
+                                    {range[0]} - {range[1]} trên {total}
+                                </div>
+                            );
+                        },
+                    }}
+                    headerTitle="Table user"
+                    toolBarRender={() => [
+                        <Button
+                            key="button"
+                            icon={<ExportOutlined />}
+                            onClick={() => {}}
+                            type="primary"
+                        >
+                            <CSVLink
+                                data={tableData}
+                                filename="export-data.csv"
+                            >
+                                Export
+                            </CSVLink>
+                        </Button>,
+                        <Button
+                            key="button"
+                            icon={<CloudDownloadOutlined />}
+                            onClick={() => {
+                                setIsImportModalOpen(true);
+                            }}
+                            type="primary"
+                        >
+                            Import
+                        </Button>,
+                        <Button
+                            key="button"
+                            icon={<PlusOutlined />}
+                            onClick={() => {
+                                setIsCreateModalOpen(true);
+                            }}
+                            type="primary"
+                        >
+                            Add new
+                        </Button>,
+                    ]}
+                />
+            </>
+            <DetailsUser
+                openViewDetails={openViewDetails}
+                setOpenViewDetails={setOpenViewDetails}
+                dataViewDetails={dataViewDetails}
+                setDataViewDetails={setDataViewDetails}
+            />
+            <CreateUser
+                isCreateModalOpen={isCreateModalOpen}
+                setIsCreateModalOpen={setIsCreateModalOpen}
+                refreshTable={refreshTable}
+            />
+            <ImportUser
+                isImportModalOpen={isImportModalOpen}
+                setIsImportModalOpen={setIsImportModalOpen}
+                refreshTable={refreshTable}
+            />
+            <UpdateUser
+                isUpdateModalOpen={isUpdateModalOpen}
+                setIsUpdateModalOpen={setIsUpdateModalOpen}
+                dataUpdate={dataUpdate}
+                setDataUpdate={setDataUpdate}
+                refreshTable={refreshTable}
             />
         </>
     );
