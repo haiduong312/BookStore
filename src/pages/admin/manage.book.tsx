@@ -1,4 +1,5 @@
+import TableBook from "components/admin/book/table.book";
 const ManageBookPage = () => {
-    return <>Manage book page</>;
+    return <TableBook />;
 };
 export default ManageBookPage;

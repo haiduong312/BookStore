@@ -83,5 +83,24 @@ export const deleteUserAPI = (_id: string) => {
 
 export const getBooksAPI = (query: string) => {
     const urlBackend = `/api/v1/book?${query}`;
-    return axios.get<IBackendRes<IModelPaginate<IUserTable>>>(urlBackend);
+    return axios.get<IBackendRes<IModelPaginate<IBookTable>>>(urlBackend);
+};
+
+export const getBookCategoriesAPI = () => {
+    const urlBackend = "/api/v1/database/category";
+    return axios.get<IBackendRes<string[]>>(urlBackend);
+};
+
+export const uploadFileAPI = (fileImg: any, folder: string) => {
+    const bodyFormData = new FormData();
+    bodyFormData.append("fileImg", fileImg);
+    return axios<IBackendRes<{ fileUploaded: string }>>({
+        method: "post",
+        url: "/api/v1/file/upload",
+        data: bodyFormData,
+        headers: {
+            "Content-Type": "multipart/form-data",
+            "upload-type": folder,
+        },
+    });
 };

@@ -70,15 +70,15 @@ declare global {
     interface IBookTable {
         _id: string;
         thumbnail: string;
-        slider: string;
+        slider: string[];
         mainText: string;
         author: string;
-        price: string;
-        sold: string;
-        quantity: string;
+        price: number;
+        sold: number;
+        quantity: number;
         category: string;
-        createdAt: string;
-        updatedAt: string;
+        createdAt: Date;
+        updatedAt: Date;
         __v: number;
     }
 }
