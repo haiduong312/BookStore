@@ -1,5 +1,4 @@
 import {
-    createBookAPI,
     getBookCategoriesAPI,
     updateBookAPI,
     uploadFileAPI,
@@ -21,7 +20,6 @@ import { LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import { UploadChangeParam } from "antd/es/upload";
 import { UploadRequestOption as RcCustomRequestOptions } from "rc-upload/lib/interface";
 import { v4 as uuidv4 } from "uuid";
-import FormItem from "antd/es/form/FormItem";
 
 type FieldType = {
     _id: string;

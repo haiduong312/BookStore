@@ -206,19 +206,16 @@ const TableUser = () => {
                     }}
                     headerTitle="Table user"
                     toolBarRender={() => [
-                        <Button
-                            key="button"
-                            icon={<ExportOutlined />}
-                            onClick={() => {}}
-                            type="primary"
-                        >
-                            <CSVLink
-                                data={tableData}
-                                filename="export-data.csv"
+                        <CSVLink data={tableData} filename="export-user.csv">
+                            <Button
+                                key="button"
+                                icon={<ExportOutlined />}
+                                onClick={() => {}}
+                                type="primary"
                             >
                                 Export
-                            </CSVLink>
-                        </Button>,
+                            </Button>
+                        </CSVLink>,
                         <Button
                             key="button"
                             icon={<CloudDownloadOutlined />}

@@ -1,4 +1,4 @@
-import { getBooksAPI } from "@/services/api";
+import { deleteBookAPI, getBooksAPI } from "@/services/api";
 import {
     PlusOutlined,
     EditTwoTone,
@@ -34,25 +34,24 @@ const TableBook = () => {
         null
     );
     const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-    const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
     const [tableData, setTableData] = useState<IBookTable[]>([]);
     const [dataUpdate, setDataUpdate] = useState<IBookTable | null>(null);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState<boolean>(false);
-    // const [isDelete, setIsDelete] = useState<boolean>(false);
-    // const [idDelete, setIdDelete] = useState<string | null>(null);
+    const [isDelete, setIsDelete] = useState<boolean>(false);
+    const [idDelete, setIdDelete] = useState<string | null>(null);
 
     const refreshTable = () => {
         actionRef.current?.reload();
     };
     const handleDelete = async () => {
-        // setIsDelete(true);
-        // const res = await deleteUserAPI(idDelete!);
-        // if (res.data) {
-        //     message.success("Deleted successfully");
-        //     refreshTable();
-        // }
-        // setIdDelete(null);
-        // setIsDelete(false);
+        setIsDelete(true);
+        const res = await deleteBookAPI(idDelete!);
+        if (res.data) {
+            message.success("Deleted successfully");
+            refreshTable();
+        }
+        setIdDelete(null);
+        setIsDelete(false);
     };
 
     const columns: ProColumns<IBookTable>[] = [
@@ -128,9 +127,9 @@ const TableBook = () => {
                 </a>,
                 <a
                     key="delete"
-                    // onClick={() => {
-                    //     setIdDelete(record._id);
-                    // }}
+                    onClick={() => {
+                        setIdDelete(record._id);
+                    }}
                     style={{ marginLeft: 15 }}
                 >
                     <Popconfirm
@@ -139,7 +138,7 @@ const TableBook = () => {
                         onConfirm={handleDelete}
                         okText="Yes"
                         cancelText="No"
-                        // okButtonProps={{ loading: isDelete }}
+                        okButtonProps={{ loading: isDelete }}
                     >
                         <DeleteTwoTone />
                     </Popconfirm>
@@ -217,19 +216,16 @@ const TableBook = () => {
                     }}
                     headerTitle="Table user"
                     toolBarRender={() => [
-                        <Button
-                            key="button"
-                            icon={<ExportOutlined />}
-                            onClick={() => {}}
-                            type="primary"
-                        >
-                            <CSVLink
-                                data={tableData}
-                                filename="export-data.csv"
+                        <CSVLink data={tableData} filename="export-book.csv">
+                            <Button
+                                key="button"
+                                icon={<ExportOutlined />}
+                                onClick={() => {}}
+                                type="primary"
                             >
                                 Export
-                            </CSVLink>
-                        </Button>,
+                            </Button>
+                        </CSVLink>,
                         <Button
                             key="button"
                             icon={<PlusOutlined />}
@@ -254,11 +250,6 @@ const TableBook = () => {
                 setIsCreateModalOpen={setIsCreateModalOpen}
                 refreshTable={refreshTable}
             />
-            {/* <ImportUser
-                isImportModalOpen={isImportModalOpen}
-                setIsImportModalOpen={setIsImportModalOpen}
-                refreshTable={refreshTable}
-            />*/}
             <UpdateBook
                 isUpdateModalOpen={isUpdateModalOpen}
                 setIsUpdateModalOpen={setIsUpdateModalOpen}
