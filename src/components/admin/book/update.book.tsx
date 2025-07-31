@@ -1,6 +1,7 @@
 import {
     createBookAPI,
     getBookCategoriesAPI,
+    updateBookAPI,
     uploadFileAPI,
 } from "services/api";
 import {
@@ -19,6 +20,9 @@ import { useEffect, useState } from "react";
 import { LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import { UploadChangeParam } from "antd/es/upload";
 import { UploadRequestOption as RcCustomRequestOptions } from "rc-upload/lib/interface";
+import { v4 as uuidv4 } from "uuid";
+import FormItem from "antd/es/form/FormItem";
+
 type FieldType = {
     _id: string;
     thumbnail: string;
@@ -31,8 +35,10 @@ type FieldType = {
 };
 
 interface IProps {
-    isCreateModalOpen: boolean;
-    setIsCreateModalOpen: (v: boolean) => void;
+    isUpdateModalOpen: boolean;
+    setIsUpdateModalOpen: (v: boolean) => void;
+    dataUpdate: IBookTable | null;
+    setDataUpdate: (v: IBookTable | null) => void;
     refreshTable: () => void;
 }
 
@@ -46,9 +52,11 @@ const getBase64 = (file: FileType): Promise<string> =>
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = (error) => reject(error);
     });
-const CreateBook = ({
-    isCreateModalOpen,
-    setIsCreateModalOpen,
+const UpdateBook = ({
+    isUpdateModalOpen,
+    setIsUpdateModalOpen,
+    dataUpdate,
+    setDataUpdate,
     refreshTable,
 }: IProps) => {
     const [isSubmit, setIsSubmit] = useState(false);
@@ -70,7 +78,8 @@ const CreateBook = ({
         form.resetFields();
         setFileListSLider([]);
         setFileListThumbnail([]);
-        setIsCreateModalOpen(false);
+        setDataUpdate(null);
+        setIsUpdateModalOpen(false);
     };
     const beforeUpload = (file: FileType) => {
         const isJpgOrPng =
@@ -108,6 +117,7 @@ const CreateBook = ({
         }
         return e?.fileList;
     };
+
     useEffect(() => {
         const getBookCategories = async () => {
             const res = await getBookCategoriesAPI();
@@ -121,13 +131,50 @@ const CreateBook = ({
         };
         getBookCategories();
     }, []);
+    useEffect(() => {
+        if (dataUpdate) {
+            const arrThumbnail = [
+                {
+                    uid: uuidv4(),
+                    name: dataUpdate.thumbnail,
+                    status: "done",
+                    url: `${import.meta.env.VITE_BACKEND_URL}/images/book/${
+                        dataUpdate.thumbnail
+                    }`,
+                },
+            ];
+            const arrSlider = dataUpdate.slider.map((item) => {
+                return {
+                    uid: uuidv4(),
+                    name: item,
+                    status: "done",
+                    url: `${
+                        import.meta.env.VITE_BACKEND_URL
+                    }/images/book/${item}`,
+                };
+            });
+            form.setFieldsValue({
+                _id: dataUpdate._id,
+                mainText: dataUpdate.mainText,
+                author: dataUpdate.author,
+                price: dataUpdate.price,
+                category: dataUpdate.category,
+                quantity: dataUpdate.quantity,
+                thumbnail: arrThumbnail,
+                slider: arrSlider,
+            });
+            setFileListThumbnail(arrThumbnail as any);
+            setFileListSLider(arrSlider as any);
+        }
+    }, [dataUpdate]);
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-        const { mainText, author, price, quantity, category } = values;
+        setIsSubmit(true);
+        const { _id, mainText, author, price, category, quantity } = values;
         const thumbnail = fileListThumbnail?.[0]?.name ?? "";
         const slider = fileListSlider?.map((item) => item.name) ?? [];
-        setIsSubmit(true);
-        const res = await createBookAPI(
+        const res = await updateBookAPI(
+            _id,
             thumbnail,
             slider,
             mainText,
@@ -136,16 +183,18 @@ const CreateBook = ({
             quantity,
             category
         );
-
         if (res && res.data) {
             message.success("Created successfully");
-            setIsCreateModalOpen(false);
+            setIsUpdateModalOpen(false);
+            setDataUpdate(null);
+            setFileListSLider([]);
+            setFileListThumbnail([]);
             form.resetFields();
             refreshTable();
         } else {
             notification.error({
                 message: "Error",
-                description: "User creation failed!",
+                description: "Updated failed!",
             });
         }
         setIsSubmit(false);
@@ -203,7 +252,7 @@ const CreateBook = ({
     return (
         <Modal
             title="Add new book"
-            open={isCreateModalOpen}
+            open={isUpdateModalOpen}
             onCancel={onCancel}
             onOk={() => form.submit()}
             okText="Submit"
@@ -216,6 +265,9 @@ const CreateBook = ({
                 onFinish={onFinish}
                 autoComplete="off"
             >
+                <Form.Item<FieldType> label="id" name="_id" hidden>
+                    <Input />
+                </Form.Item>
                 <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item<FieldType>
@@ -419,4 +471,4 @@ const CreateBook = ({
     );
 };
 
-export default CreateBook;
+export default UpdateBook;

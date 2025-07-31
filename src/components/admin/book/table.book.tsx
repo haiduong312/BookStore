@@ -13,6 +13,7 @@ import { useRef, useState } from "react";
 import { CSVLink } from "react-csv";
 import DetailsBook from "./details.book";
 import CreateBook from "./create.book";
+import UpdateBook from "./update.book";
 
 interface ISearch {
     mainText: string;
@@ -35,8 +36,8 @@ const TableBook = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
     const [tableData, setTableData] = useState<IBookTable[]>([]);
-    // const [dataUpdate, setDataUpdate] = useState<IUserTable | null>(null);
-    // const [isUpdateModalOpen, setIsUpdateModalOpen] = useState<boolean>(false);
+    const [dataUpdate, setDataUpdate] = useState<IBookTable | null>(null);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState<boolean>(false);
     // const [isDelete, setIsDelete] = useState<boolean>(false);
     // const [idDelete, setIdDelete] = useState<string | null>(null);
 
@@ -119,8 +120,8 @@ const TableBook = () => {
                 <a
                     key="editable"
                     onClick={() => {
-                        // setDataUpdate(record);
-                        // setIsUpdateModalOpen(true);
+                        setDataUpdate(record);
+                        setIsUpdateModalOpen(true);
                     }}
                 >
                     <EditTwoTone />
@@ -257,14 +258,14 @@ const TableBook = () => {
                 isImportModalOpen={isImportModalOpen}
                 setIsImportModalOpen={setIsImportModalOpen}
                 refreshTable={refreshTable}
-            />
-            <UpdateUser
+            />*/}
+            <UpdateBook
                 isUpdateModalOpen={isUpdateModalOpen}
                 setIsUpdateModalOpen={setIsUpdateModalOpen}
                 dataUpdate={dataUpdate}
                 setDataUpdate={setDataUpdate}
                 refreshTable={refreshTable}
-            />  */}
+            />
         </>
     );
 };
