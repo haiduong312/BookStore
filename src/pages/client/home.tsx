@@ -21,10 +21,11 @@ import {
 import { useState, useEffect } from "react";
 
 type FieldType = {
-    fullName?: string;
-    password?: string;
-    email?: string;
-    phone?: string;
+    range: {
+        from: number;
+        to: number;
+    };
+    category: string[];
 };
 
 const items: TabsProps["items"] = [
@@ -65,13 +66,42 @@ const HomePage = () => {
 
     const handleChangeFilter = (changeValues: any, values: any) => {
         console.log(changeValues, values);
+        if (changeValues.category) {
+            const category = values.category;
+            if (category && category.length) {
+                const f = category.join(",");
+                setFilter(`category=${f}`);
+            } else {
+                setFilter("");
+            }
+        }
     };
 
-    const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-        console.log("Success:", values);
+    const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+        if (values?.range?.to >= 0 && values?.range?.from >= 0) {
+            let f = `price>=${values.range.from}&price<=${values?.range?.to}`;
+            if (values?.category?.length) {
+                const cate = values.category.join(",");
+                f += `&category=${cate}`;
+            }
+            setFilter(f);
+        }
     };
 
-    const onChange = (key: string) => {};
+    const onChange = (key: string) => {
+        if (key === "1") {
+            setSortQuery(`sort=-sold`);
+        }
+        if (key === "2") {
+            setSortQuery(`sort=-updatedAt`);
+        }
+        if (key === "3") {
+            setSortQuery(`sort=price`);
+        }
+        if (key === "4") {
+            setSortQuery(`sort=-price`);
+        }
+    };
 
     useEffect(() => {
         const getBookCategories = async () => {
@@ -160,7 +190,9 @@ const HomePage = () => {
                             </span>
                             <ReloadOutlined
                                 title="Reset"
-                                onClick={() => form.resetFields()}
+                                onClick={() => {
+                                    form.resetFields(), setFilter("");
+                                }}
                                 style={{
                                     float: "right",
                                     cursor: "pointer",
@@ -176,7 +208,7 @@ const HomePage = () => {
                             layout="vertical"
                             style={{ marginTop: 16 }}
                         >
-                            <Form.Item
+                            <Form.Item<FieldType>
                                 label="Danh mục sản phẩm"
                                 name="category"
                             >
@@ -205,7 +237,7 @@ const HomePage = () => {
                             <Form.Item label="Khoảng giá">
                                 <Row gutter={8} align="middle">
                                     <Col span={10}>
-                                        <Form.Item
+                                        <Form.Item<FieldType>
                                             name={["range", "from"]}
                                             noStyle
                                         >
@@ -308,7 +340,9 @@ const HomePage = () => {
                             <Tabs
                                 defaultActiveKey="1"
                                 items={items}
-                                onChange={onChange}
+                                onChange={(key) => {
+                                    onChange(key);
+                                }}
                             />
                         </Row>
                         <Row gutter={[8, 16]}>
