@@ -19,6 +19,7 @@ import {
     Spin,
 } from "antd";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 type FieldType = {
     range: {
@@ -51,6 +52,7 @@ const items: TabsProps["items"] = [
     },
 ];
 const HomePage = () => {
+    const navigate = useNavigate();
     const [form] = Form.useForm();
     const [categories, setCategories] = useState<
         { value: string; label: string }[]
@@ -354,6 +356,9 @@ const HomePage = () => {
                                     md={8}
                                     lg={6}
                                     xl={6}
+                                    onClick={() =>
+                                        navigate(`/book/${item._id}`)
+                                    }
                                 >
                                     <div>
                                         <div>
@@ -369,6 +374,7 @@ const HomePage = () => {
                                                     flexDirection: "column",
                                                     alignItems: "center",
                                                     textAlign: "center",
+                                                    cursor: "pointer",
                                                 }}
                                             >
                                                 <div
