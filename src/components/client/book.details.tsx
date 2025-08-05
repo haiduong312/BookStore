@@ -5,13 +5,16 @@ import "styles/book.scss";
 import ModalGallery from "./modal.gallery";
 import { getBookByIdAPI } from "@/services/api";
 import BookLoader from "./book.loader";
+import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 interface IProps {
     bookId?: string;
 }
+type TUserAction = "MINUS" | "PLUS";
 const BookDetails = ({ bookId }: IProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isOpenModalGallery, setIsOpenModalGallery] =
         useState<boolean>(false);
+    const [currentQuantity, setCurrentQuantity] = useState<number>(1);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const refGallery = useRef<ImageGallery>(null);
     const [bookData, setBookData] = useState<IBookTable | null>(null);
@@ -66,7 +69,23 @@ const BookDetails = ({ bookId }: IProps) => {
         setIsOpenModalGallery(true);
         setCurrentIndex(refGallery.current?.getCurrentIndex() ?? 0);
     };
-
+    const handleChangeButton = (type: TUserAction) => {
+        if (type === "MINUS") {
+            if (currentQuantity - 1 <= 0) return;
+            setCurrentQuantity(currentQuantity - 1);
+        }
+        if (type === "PLUS" && bookData) {
+            if (currentQuantity === +bookData?.quantity) return;
+            setCurrentQuantity(currentQuantity + 1);
+        }
+    };
+    const handleChangeInput = (value: string) => {
+        if (!isNaN(+value)) {
+            if (+value > 0 && bookData && +value < +bookData.quantity) {
+                setCurrentQuantity(+value);
+            }
+        }
+    };
     return (
         <div>
             {isLoading ? (
@@ -116,12 +135,29 @@ const BookDetails = ({ bookId }: IProps) => {
 
                             <div className="book-info-row">
                                 <span className="label">Số lượng:</span>
-                                <InputNumber
-                                    min={1}
-                                    max={99}
-                                    defaultValue={1}
-                                    style={{ width: 120, height: 40 }}
-                                />
+                                <span className="input-quantity">
+                                    <button
+                                        onClick={() =>
+                                            handleChangeButton("MINUS")
+                                        }
+                                    >
+                                        <MinusOutlined />
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={currentQuantity}
+                                        onChange={(e) =>
+                                            handleChangeInput(e.target.value)
+                                        }
+                                    />
+                                    <button
+                                        onClick={() =>
+                                            handleChangeButton("PLUS")
+                                        }
+                                    >
+                                        <PlusOutlined />
+                                    </button>
+                                </span>
                             </div>
 
                             <div className="book-action-buttons">
