@@ -15,7 +15,7 @@ const ProtectedRoute = (props: IProps) => {
                 status="404"
                 title="Oops! It looks like you are not logged in"
                 extra={
-                    <Button type="primary">
+                    <Button type="primary" style={{ width: 300 }}>
                         <Link to="/login">Log in</Link>
                     </Button>
                 }
@@ -31,7 +31,7 @@ const ProtectedRoute = (props: IProps) => {
                     status="403"
                     title="Sorry, you are not authorized to access this page"
                     extra={
-                        <Button type="primary">
+                        <Button type="primary" style={{ width: 300 }}>
                             <Link to="/">Back Home</Link>
                         </Button>
                     }

@@ -6,6 +6,7 @@ import ModalGallery from "./modal.gallery";
 import { getBookByIdAPI } from "@/services/api";
 import BookLoader from "./book.loader";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { useCurrentApp } from "../context/app.context";
 interface IProps {
     bookId?: string;
 }
@@ -21,6 +22,7 @@ const BookDetails = ({ bookId }: IProps) => {
     const [bookImages, setBookImages] = useState<
         { original: string; thumbnail: string }[]
     >([]);
+    const { carts, setCarts } = useCurrentApp();
     useEffect(() => {
         if (bookId) {
             setIsLoading(true);
@@ -84,6 +86,35 @@ const BookDetails = ({ bookId }: IProps) => {
             if (+value > 0 && bookData && +value < +bookData.quantity) {
                 setCurrentQuantity(+value);
             }
+        }
+    };
+    const handleAddToCart = () => {
+        const cartStorage = localStorage.getItem("carts");
+        if (cartStorage && bookData) {
+            const carts = JSON.parse(cartStorage) as ICart[];
+            let isExistIndex = carts.findIndex((c) => c._id === bookData._id);
+            if (isExistIndex > -1) {
+                carts[isExistIndex].quantity =
+                    carts[isExistIndex].quantity + currentQuantity;
+            } else {
+                carts.push({
+                    _id: bookData._id,
+                    quantity: currentQuantity,
+                    data: bookData,
+                });
+            }
+            localStorage.setItem("carts", JSON.stringify(carts));
+            setCarts(carts);
+        } else {
+            const data = [
+                {
+                    _id: bookData?._id!,
+                    quantity: currentQuantity,
+                    data: bookData!,
+                },
+            ];
+            localStorage.setItem("carts", JSON.stringify(data));
+            setCarts(data);
         }
     };
     return (
@@ -161,7 +192,10 @@ const BookDetails = ({ bookId }: IProps) => {
                             </div>
 
                             <div className="book-action-buttons">
-                                <Button className="add-to-cart">
+                                <Button
+                                    className="add-to-cart"
+                                    onClick={() => handleAddToCart()}
+                                >
                                     Thêm Vào Giỏ Hàng
                                 </Button>
                                 <Button className="buy-now">Mua Ngay</Button>

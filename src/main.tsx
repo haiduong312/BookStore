@@ -19,6 +19,8 @@ import { AppProvider } from "components/context/app.context";
 
 import { App, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
+import OrderPage from "./pages/client/order";
+import History from "./pages/client/history";
 
 const router = createBrowserRouter([
     {
@@ -44,6 +46,18 @@ const router = createBrowserRouter([
                         <div>checkout page</div>
                     </ProtectedRoute>
                 ),
+            },
+            {
+                path: "/order",
+                element: (
+                    <ProtectedRoute>
+                        <OrderPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/history",
+                element: <History />,
             },
         ],
     },

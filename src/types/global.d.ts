@@ -81,4 +81,26 @@ declare global {
         updatedAt: Date;
         __v: number;
     }
+
+    interface ICart {
+        _id: string;
+        quantity: number;
+        data: IBookTable;
+    }
+
+    interface IHistory {
+        _id: string;
+        name: string;
+        type: string;
+        email: string;
+        phone: string;
+        userId: string;
+        detail: any;
+        totalPrice: number;
+        paymentStatus: string;
+        paymentRef: string;
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+    }
 }
