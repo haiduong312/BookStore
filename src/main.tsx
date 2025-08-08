@@ -40,14 +40,6 @@ const router = createBrowserRouter([
                 element: <AboutPage />,
             },
             {
-                path: "/checkout",
-                element: (
-                    <ProtectedRoute>
-                        <div>checkout page</div>
-                    </ProtectedRoute>
-                ),
-            },
-            {
                 path: "/order",
                 element: (
                     <ProtectedRoute>
@@ -57,7 +49,11 @@ const router = createBrowserRouter([
             },
             {
                 path: "/history",
-                element: <History />,
+                element: (
+                    <ProtectedRoute>
+                        <History />
+                    </ProtectedRoute>
+                ),
             },
         ],
     },

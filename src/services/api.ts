@@ -187,5 +187,5 @@ export const createAnOrder = (
 
 export const OrderHistoryAPI = () => {
     const urlBackend = `/api/v1/history`;
-    return axios.delete<IBackendRes<IHistory>>(urlBackend);
+    return axios.get<IBackendRes<IHistory[]>>(urlBackend);
 };

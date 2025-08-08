@@ -95,12 +95,14 @@ declare global {
         email: string;
         phone: string;
         userId: string;
-        detail: any;
+        detail: {
+            bookName: string;
+            quantity: string;
+            _id: string;
+        }[];
         totalPrice: number;
-        paymentStatus: string;
-        paymentRef: string;
-        createdAt: string;
-        updatedAt: string;
+        createdAt: Date;
+        updatedAt: Date;
         __v: number;
     }
 }
